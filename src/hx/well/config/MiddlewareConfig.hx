@@ -11,11 +11,7 @@ class MiddlewareConfig implements IConfig {
 
     public function get():Array<Class<AbstractMiddleware>> {
         return [
-            CorsMiddleware,
-            DatabaseMiddleware,
-            SessionMiddleware,
-            SessionAuthMiddleware,
-            SampleMiddleware
+            CorsMiddleware
         ];
     }
 }
