@@ -5,7 +5,7 @@ import hx.well.handler.PublicApiHandler;
 class BootProvider extends AbstractProvider {
     public function boot():Void {
         Route.domain("api.hxwell.org").group(() -> {
-            Route.get("/{any}")
+            Route.get("{any}")
                 .handler(new PublicApiHandler())
                 .where("any", ".*");
         });
