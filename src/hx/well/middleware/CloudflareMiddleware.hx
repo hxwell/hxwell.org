@@ -5,9 +5,12 @@ import hx.well.http.Response;
 import hx.well.http.Request;
 import hx.well.http.ResponseBuilder;
 
-class SampleMiddleware extends AbstractMiddleware {
+class CloudflareMiddleware extends AbstractMiddleware {
     public function handle(request:Request, next:Request->Null<Response>):Null<Response> {
-        ResponseBuilder.asStatic().header("Sample-Middleware", "SampleValue");
+        var cfConnectingIp = request.header("CF-Connecting-IP");
+        if (cfConnectingIp != null) {
+            request.ip = cfConnectingIp; // Override the request IP with the CF-Connecting-IP value
+        }
 
         return next(request);
     }
