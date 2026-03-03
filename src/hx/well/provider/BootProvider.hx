@@ -4,8 +4,12 @@ import hx.well.handler.AbortHandler;
 import hx.well.handler.PublicApiHandler;
 class BootProvider extends AbstractProvider {
     public function boot():Void {
-        Route.domain("api.hxwell.org")
-            .handler(new PublicApiHandler());
+        Route.domain("api.hxwell.org").group(() -> {
+            Route.get("/{any}")
+                .handler(new PublicApiHandler())
+                .where("any", ".*");
+        });
+
 
         Route.get("/abort/{code}")
             .handler(new AbortHandler())
