@@ -295,6 +295,44 @@
                 width: 100%;
             }
         }
+
+        .online-badge {
+            margin-top: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f89c0e;
+            /* Connecting (orange) */
+            box-shadow: 0 0 8px rgba(248, 156, 14, 0.6);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background-color: #10b981;
+            /* Green */
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
+        .status-dot.disconnected {
+            background-color: #ef4444;
+            /* Red */
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
     </style>
 </head>
 
@@ -336,7 +374,42 @@
         <div class="version">
             © 2026 HxWell Framework <span class="version-badge">v0.1.0</span>
         </div>
+
+        <div id="online-count" class="online-badge">
+            <span id="status-dot" class="status-dot"></span>
+            <span id="online-text">Connecting...</span>
+        </div>
     </main>
+
+    <script>
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(protocol + '//' + window.location.host + '/online');
+            const statusDot = document.getElementById('status-dot');
+            const onlineText = document.getElementById('online-text');
+
+            ws.onopen = () => {
+                statusDot.className = 'status-dot connected';
+                onlineText.innerText = 'Online: ...';
+            };
+
+            ws.onmessage = (event) => {
+                onlineText.innerText = 'Online: ' + event.data;
+            };
+
+            ws.onclose = () => {
+                statusDot.className = 'status-dot disconnected';
+                onlineText.innerText = 'Disconnected (reconnecting...)';
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+            };
+        }
+
+        connect();
+    </script>
 </body>
 
 </html>

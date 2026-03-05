@@ -1,7 +1,10 @@
 package hx.well.provider;
+
 import hx.well.route.Route;
 import hx.well.handler.AbortHandler;
 import hx.well.handler.PublicApiHandler;
+import hx.well.handler.OnlineCountWebSocketHandler;
+
 class BootProvider extends AbstractProvider {
     public function boot():Void {
         Route.domain("api.hxwell.org").group(() -> {
@@ -13,9 +16,11 @@ class BootProvider extends AbstractProvider {
                 .where("any", ".*");
         });
 
-
         Route.get("/abort/{code}")
             .handler(new AbortHandler())
             .where("code", "\\b[1-5][0-9]{2}\\b");
-    }
+
+		Route.websocket("/online")
+			.handler(new OnlineCountWebSocketHandler());
+	}
 }
