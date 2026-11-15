@@ -143,20 +143,19 @@
             color: var(--ink);
         }
 
-        /* Hero */
-        .hero {
+        main {
             flex: 1;
-            display: flex;
-            align-items: center;
         }
+
+        /* Hero */
 
         .hero .wrap {
             display: grid;
             grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
             gap: 64px;
             align-items: center;
-            padding-top: 48px;
-            padding-bottom: 72px;
+            padding-top: 32px;
+            padding-bottom: 56px;
         }
 
         h1 {
@@ -218,7 +217,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 36px;
+            margin-bottom: 32px;
         }
 
         .button {
@@ -246,23 +245,58 @@
             color: var(--paper);
         }
 
-        .built-with {
-            color: var(--muted);
-            max-width: 30em;
-            padding-top: 20px;
-            border-top: 1px solid var(--rule);
+        /* Showcase */
+        .showcase .wrap {
+            padding-top: 48px;
+            padding-bottom: 72px;
         }
 
-        .built-with a {
-            color: var(--ink);
+        .showcase h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 20px;
+        }
+
+        .project {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) auto;
+            gap: 12px 40px;
+            align-items: baseline;
+            padding: 24px 0;
+            border-top: 2px solid var(--ink);
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .project h3 {
+            font-size: 1.35rem;
             font-weight: 700;
-            text-decoration-color: var(--amber);
-            text-decoration-thickness: 2px;
-            text-underline-offset: 3px;
+            letter-spacing: -0.015em;
         }
 
-        .built-with a:hover {
-            text-decoration-color: var(--flame);
+        .project p {
+            color: var(--muted);
+            max-width: 34em;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .project-links a {
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            padding: 7px 16px;
+            border-radius: 6px;
+            border: 2px solid var(--ink);
+            white-space: nowrap;
+        }
+
+        .project-links a:hover {
+            background: var(--ink);
+            color: var(--paper);
         }
 
         /* Code */
@@ -347,6 +381,14 @@
                 gap: 48px;
                 padding-top: 24px;
             }
+
+            .project {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .project-links {
+                margin-top: 4px;
+            }
         }
 
         @media (max-width: 560px) {
@@ -366,6 +408,7 @@
             .code-file {
                 padding: 10px 16px;
             }
+
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -387,7 +430,8 @@
         </div>
     </header>
 
-    <main class="hero">
+    <main>
+        <section class="hero">
         <div class="wrap">
             <div>
                 <h1>Write your web backend in Haxe.</h1>
@@ -407,11 +451,6 @@
                     <a href="https://github.com/hxwell/hxwell" class="button button-plain">View on GitHub</a>
                 </div>
 
-                <p class="built-with">
-                    <a href="https://barisyild.com" target="_blank" rel="noopener">HaxePress</a>
-                    is a content management system built with HxWell.
-                    Its demo runs at barisyild.com.
-                </p>
             </div>
 
             <figure>
@@ -440,6 +479,26 @@
                 </figcaption>
             </figure>
         </div>
+        </section>
+
+        <section class="showcase" aria-labelledby="showcase-title">
+            <div class="wrap">
+                <h2 id="showcase-title">Built with HxWell</h2>
+
+                <article class="project">
+                    <h3>HaxePress</h3>
+                    <p>
+                        A content management system written in Haxe. Write posts in Markdown,
+                        define your own content types, and change the look with themes and plugins.
+                        It runs on the JVM or PHP, with SQLite or MySQL.
+                    </p>
+                    <div class="project-links">
+                        <a href="https://barisyild.com">Demo</a>
+                        <a href="https://github.com/HaxePress/HaxePress">Source</a>
+                    </div>
+                </article>
+            </div>
+        </section>
     </main>
 
     <footer class="site-footer">
