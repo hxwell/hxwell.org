@@ -1,4 +1,7 @@
 .idea
 Export
 *.iml
-.env
+.envbuild
+dist
+.deps
+.haxelib

@@ -1,0 +1,128 @@
+name: Release
+
+# Publishing a release builds its tag for the JVM and attaches
+# hxwell-org-<tag>-jvm.zip to it. Run it by hand to rebuild a release's zip.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and attach the JVM zip to
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  jvm:
+    name: Build and attach the JVM zip
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Checkout the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
+
+      # The same revisions HaxePress builds with.
+      - name: Checkout HxWell
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: hxwell/hxwell
+          ref: 1427f18ad2a0d5626759d52e6c3a82cada9208a6
+          path: .deps/hxwell
+          persist-credentials: false
+      - name: Checkout hxwell-crossbyte
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: hxwell/hxwell-crossbyte
+          ref: 8dca380416689ae24400176b3909e20c09ef9e63
+          path: .deps/hxwell-crossbyte
+          persist-credentials: false
+      - name: Checkout Crossbyte
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: DimensionscapeOrg/crossbyte
+          ref: acc6de8994e0292ae48706017a2eafa4acbaedbf
+          path: .deps/crossbyte
+          persist-credentials: false
+      - name: Checkout Emitter
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Dimensionscape/Emitter
+          ref: 06b396f584271e24a7dc18dcfadfd020c567cc6a
+          path: .deps/emitter
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Haxe
+        uses: krdlab/setup-haxe@18e4b483cfffca2fb8881530bf8a6cec39dac8fb # v2
+        with:
+          haxe-version: 4.3.7
+
+      - name: Install Haxe libraries
+        run: |
+          haxelib newrepo
+          haxelib install haxe-concurrent 5.1.5 --always --quiet
+          haxelib install uuid 2.4.1 --always --quiet
+          haxelib install crypto 1.3.0 --always --quiet
+          haxelib install hxjava 4.2.0 --always --quiet
+          haxelib dev emitter .deps/emitter
+          haxelib dev crossbyte .deps/crossbyte
+          haxelib dev hxwell .deps/hxwell
+          haxelib dev hxwell-crossbyte .deps/hxwell-crossbyte
+
+      - name: Build the JVM server
+        run: haxe global.hxml -lib hxwell -lib hxjava --jvm build/hxwell.jar
+
+      - name: Package the zip
+        run: |
+          name="hxwell-org-$TAG"
+          dir="dist/$name"
+          mkdir -p "$dir"
+          cp build/hxwell.jar "$dir/"
+          cp -R public "$dir/public"
+          cp release/start.sh release/.env.example release/README.txt "$dir/"
+          chmod +x "$dir/start.sh"
+          (cd dist && zip -qr "$name-jvm.zip" "$name")
+          echo "ZIP=dist/$name-jvm.zip" >> "$GITHUB_ENV"
+
+      - name: Check that the packaged server starts
+        run: |
+          smoke="$RUNNER_TEMP/smoke"
+          mkdir -p "$smoke"
+          unzip -q "$ZIP" -d "$smoke"
+          cd "$smoke"/hxwell-org-*/
+          if [ -f .env ]; then echo "The zip contains an .env file."; exit 1; fi
+          cp .env.example .env
+          sed -i 's/^PORT=.*/PORT=3000/' .env
+          ./start.sh > server.log 2>&1 &
+          server=$!
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/ | grep -q "HxWell"; then
+              echo "The packaged server serves the landing page."
+              kill "$server"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat server.log
+          exit 1
+
+      - name: Attach the zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" "$ZIP" --clobber --repo "$GITHUB_REPOSITORY"
